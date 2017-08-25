@@ -81,6 +81,7 @@
                     android:id="@+id/etAccount"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
+                    android:text="88825"
                     style="@style/EditText_Account_Style"
                     android:drawableRight="@mipmap/account_icon" />
 
@@ -98,10 +99,9 @@
                     android:layout_height="50dp"
                     android:drawableRight="@mipmap/password_icon"
                     android:inputType="textPassword"
+                    android:text="123456"
                     style="@style/EditText_Account_Style" />
             </LinearLayout>
-
-
 
             <Button
                 android:id="@+id/btnAccountLogin"
