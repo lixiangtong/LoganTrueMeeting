@@ -5,9 +5,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.zte.ucsp.vtcoresdk.jni.JniHelperNative;
 import com.zte.ucsp.vtcoresdk.jni.VTCoreSDKAgentNative;
 import com.zte.ucsp.vtcoresdk.jni.media.AudioMgr;
@@ -19,7 +21,7 @@ import java.util.TimerTask;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class SplashActivity extends Activity implements Runnable {
+public class SplashActivity extends BaseActivity implements Runnable {
 
     @BindView(R.id.tvLogo)
     TextView tvLogo;
@@ -44,6 +46,8 @@ public class SplashActivity extends Activity implements Runnable {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_splash);
         ButterKnife.bind(this);
 

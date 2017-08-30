@@ -6,7 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.logansoft.lubo.logantruemeeting.LoginActivity">
+    tools:context="com.logansoft.lubo.logantruemeeting.MeetingLoginActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/abl"
@@ -61,9 +61,8 @@
             android:background="@drawable/shape_login"
             android:padding="30dp"
             >
-
             <LinearLayout
-                android:id="@+id/llAccount"
+                android:id="@+id/llMeetting"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
@@ -71,55 +70,54 @@
                 >
 
                 <TextView
-                    android:id="@+id/tvAccount"
+                    android:id="@+id/tvMeeting"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="账号"
-                    style="@style/TextView_Account_Style" />
+                    android:text="教研室号"
+                    style="@style/TextView_Meeting_Style" />
 
                 <EditText
-                    android:id="@+id/etAccount"
+                    android:id="@+id/etMeeting"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:text="15876573124"
-                    style="@style/EditText_Account_Style"
-                    android:drawableRight="@mipmap/account_icon" />
+                    style="@style/EditText_Meeting_Style"
+                    android:inputType="number"
+                    android:drawableRight="@mipmap/office_icon" />
 
                 <TextView
-                    android:id="@+id/tvAccountPass"
+                    android:id="@+id/tvMeetingName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="密码"
-                    style="@style/TextView_Account_Style" />
+                    android:text="昵称"
+                    style="@style/TextView_Meeting_Style" />
 
                 <EditText
-                    android:id="@+id/etAccountPassword"
+                    android:id="@+id/etMeetingNick"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:drawableRight="@mipmap/password_icon"
-                    android:inputType="textPassword"
-                    android:text="123456"
-                    style="@style/EditText_Account_Style" />
+                    android:drawableRight="@mipmap/nicheng"
+                    style="@style/EditText_Meeting_Style" />
             </LinearLayout>
 
             <Button
-                android:id="@+id/btnAccountLogin"
+                android:id="@+id/btnMeetingLogin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
                 android:background="@drawable/shape_home_gradient_account"
                 android:text="登录"
                 style="@style/button_login"
+                android:visibility="visible"
                 />
 
             <Button
-                android:id="@+id/btnMeeting"
+                android:id="@+id/btnAccount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:background="@drawable/shape_home_gradient_meeting"
-                android:text="会议号登录"
+                android:text="账号登录"
                 style="@style/button_login"
                 android:visibility="visible"
                 />

@@ -3,6 +3,9 @@ package com.logansoft.lubo.logantruemeeting;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -10,25 +13,35 @@ import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.widget.NestedScrollView;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.logansoft.lubo.logantruemeeting.Receivers.NetConnectionReceiver;
+import com.logansoft.lubo.logantruemeeting.interfaces.NetConnectionObserver;
+import com.logansoft.lubo.logantruemeeting.utils.ReceiverUtil;
+import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.zte.ucsp.vtcoresdk.jni.AuthAgentNative;
 import com.zte.ucsp.vtcoresdk.jni.EventCenterNotifier;
 import com.zte.ucsp.vtcoresdk.jni.VTCoreSDKAgentNative;
 import com.zte.ucsp.vtcoresdk.util.Constants;
 
+import java.lang.reflect.Field;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 
-public class LoginActivity extends Activity implements EventCenterNotifier.ILoginResultListener {
+public class LoginActivity extends BaseActivity implements EventCenterNotifier.ILoginResultListener ,NetConnectionObserver{
     public static final String TAG = "LoginActivity";
     private static final int LOGIN_SUCCESS = Constants.EVENT_LOGIN_ACTIVITY_BASE + 1;
     private static final int LOGINED = Constants.EVENT_LOGIN_ACTIVITY_BASE + 2;
@@ -79,7 +92,6 @@ public class LoginActivity extends Activity implements EventCenterNotifier.ILogi
             return false;
         }
     });
-    private AlertDialog.Builder __goOnLoginDialogBuilder;
     private View.OnClickListener loginClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -87,15 +99,33 @@ public class LoginActivity extends Activity implements EventCenterNotifier.ILogi
             AuthAgentNative.login(etAccount.getText().toString(),etAccountPassword.getText().toString(),true);
         }
     };
+    private NetConnectionReceiver mReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
+        mReceiver = new NetConnectionReceiver();
+        //注册广播
+        ReceiverUtil.registerReceiver(mReceiver,this);
+        //CoordinatorLayout禁止滑动事件
+        ct.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_MOVE:
+                        return true;
+                    default:
+                        break;
+                }
+                return true;
+            }
+        });
 
         btnAccountLogin.setOnClickListener(loginClickListener);
         EventCenterNotifier.addListener(EventCenterNotifier.ILoginResultListener.class, this);
+        BaseApplication.getInstance().addNetObserver(this);
     }
 
     @Override
@@ -118,7 +148,7 @@ public class LoginActivity extends Activity implements EventCenterNotifier.ILogi
     }
 
     private void showGoOnLoginDialog() {
-        if (null != __goOnLoginDialogBuilder) {
+        if (null != goOnLoginDialogBuilder) {
             return;
         }
 
@@ -129,23 +159,32 @@ public class LoginActivity extends Activity implements EventCenterNotifier.ILogi
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 AuthAgentNative.goOnLogin();
-                __goOnLoginDialogBuilder = null;
+                goOnLoginDialogBuilder = null;
             }
         });
         builder.setNegativeButton("取消", new AlertDialog.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                __goOnLoginDialogBuilder = null;
+                goOnLoginDialogBuilder = null;
             }
         });
         builder.create().show();
 
-        __goOnLoginDialogBuilder = builder;
+        goOnLoginDialogBuilder = builder;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        ReceiverUtil.unregisterReceiver(mReceiver,this);
         EventCenterNotifier.removeListener(EventCenterNotifier.ILoginResultListener.class, this);
+        BaseApplication.getInstance().removeNetObserver(this);
     }
+
+    @Override
+    public void updateNetStatus(int type) {
+        Log.d(TAG, "updateNetStatus: ");
+        ReceiverUtil.showToast(type,this);
+    }
+
 }

@@ -22,4 +22,5 @@
     <color name="keyboard_radioButton_checked">#82d0fd</color>
     <color name="keyboard_radioButton_unchecked">#32a9fd</color>
     <color name="gray_pb">#d9d9d9</color>
+    <color name="statusbar_bg">#20000000</color>
 </resources>

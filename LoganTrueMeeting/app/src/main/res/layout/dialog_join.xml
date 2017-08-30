@@ -18,7 +18,7 @@
         android:layout_width="250dp"
         android:layout_height="45dp"
         android:layout_marginTop="19dp"
-        android:paddingLeft="3dp"
+        android:paddingLeft="5dp"
         android:inputType="number"
         android:text="3213300666"
         android:background="@drawable/shape_dialog"

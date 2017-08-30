@@ -11,10 +11,24 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
+    //签名
+    signingConfigs {
+        release {
+            storeFile file('E:/meetingsignkey/mymeetingkey.jks');
+            storePassword 'meetingsignkey'
+            keyAlias 'loganmeeting'
+            keyPassword 'meetingsignkey'
+        }
+    }
     buildTypes {
         release {
+            // 混淆
             minifyEnabled false
+            // Zipalign优化
+            zipAlignEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     sourceSets {
@@ -40,6 +54,7 @@ dependencies {
     compile 'com.android.support:support-v4:25.3.1'
     compile 'com.android.support:support-v13:25.3.1'
     compile 'com.android.support:design:25.3.1'
+    compile 'com.readystatesoftware.systembartint:systembartint:1.0.4'
     testCompile 'junit:junit:4.12'
     apt 'com.jakewharton:butterknife-compiler:8.6.0'
 }

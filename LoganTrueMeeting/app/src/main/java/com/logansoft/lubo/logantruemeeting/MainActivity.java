@@ -12,10 +12,14 @@ import android.view.KeyEvent;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.logansoft.lubo.logantruemeeting.Receivers.NetConnectionReceiver;
 import com.logansoft.lubo.logantruemeeting.adapters.BarFragmentAdapter;
 import com.logansoft.lubo.logantruemeeting.fragments.HomeFragment;
 import com.logansoft.lubo.logantruemeeting.fragments.SettingsFragment;
+import com.logansoft.lubo.logantruemeeting.interfaces.NetConnectionObserver;
+import com.logansoft.lubo.logantruemeeting.utils.ReceiverUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +27,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends BaseActivity implements NetConnectionObserver {
 
     private static final String TAG = "MainActivity";
 
@@ -42,6 +46,7 @@ public class MainActivity extends FragmentActivity {
     private HomeFragment homeFragment;
     private SettingsFragment settingsFragment;
     private BarFragmentAdapter fragmentAdapter;
+    private NetConnectionReceiver mReceiver;
 
 
     @Override
@@ -50,7 +55,11 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        mReceiver = new NetConnectionReceiver();
+        //注册网络监听广播
+        ReceiverUtil.registerReceiver(mReceiver,this);
 
+        BaseApplication.getInstance().addNetObserver(this);
         homeFragment = new HomeFragment();
         settingsFragment = new SettingsFragment();
         fragments.add(homeFragment);
@@ -148,6 +157,8 @@ public class MainActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy: "+1);
+        BaseApplication.getInstance().removeNetObserver(this);
+        ReceiverUtil.unregisterReceiver(mReceiver,this);
     }
 
     @Override
@@ -157,4 +168,9 @@ public class MainActivity extends FragmentActivity {
 
     }
 
+    @Override
+    public void updateNetStatus(int type) {
+        Log.d(TAG, "updateNetStatus: ");
+        ReceiverUtil.showToast(type,this);
+    }
 }

@@ -1,5 +1,6 @@
 package com.logansoft.lubo.logantruemeeting;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -28,7 +29,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.logansoft.lubo.logantruemeeting.Receivers.NetConnectionReceiver;
 import com.logansoft.lubo.logantruemeeting.adapters.NavigationAdapter;
+import com.logansoft.lubo.logantruemeeting.interfaces.NetConnectionObserver;
+import com.logansoft.lubo.logantruemeeting.utils.ReceiverUtil;
 import com.logansoft.lubo.logantruemeeting.widgets.CustomViewPager;
 import com.zte.ucsp.vtcoresdk.jni.CallAgentNative;
 import com.zte.ucsp.vtcoresdk.jni.EventCenterNotifier;
@@ -37,12 +41,14 @@ import com.zte.ucsp.vtcoresdk.jni.media.CameraGrabber;
 import com.zte.ucsp.vtcoresdk.jni.media.VideoPlayer;
 import com.zte.ucsp.vtcoresdk.util.Constants;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MeetingActivity extends Activity implements EventCenterNotifier.ICallStatusListener, View.OnTouchListener, View.OnClickListener {
+public class MeetingActivity extends BaseActivity implements EventCenterNotifier.ICallStatusListener, View.OnTouchListener, View.OnClickListener,Runnable,NetConnectionObserver {
 
     private static final String TAG = "MeetingActivity";
     @BindView(R.id.iv_screenshare)
@@ -136,7 +142,7 @@ public class MeetingActivity extends Activity implements EventCenterNotifier.ICa
                     finish();
                     break;
                 case DIAPLAY_DELAY:
-                    CameraGrabber.openCamera(1280, 720, 15);
+                    CameraGrabber.openCamera(1280, 720, 20);
                     CameraGrabber.startCamera(1);
                     isCameraOpen = true;
                     cbCamera.setChecked(true);
@@ -167,6 +173,10 @@ public class MeetingActivity extends Activity implements EventCenterNotifier.ICa
     public SurfaceHolder mLocalInSurfaceHolder;
     private int mGlEsVersion = 0x00020000;
     private ViewGroup.LayoutParams mLocalInLayout;
+    private long startTimeMillis;
+    private SimpleDateFormat sdf;
+    private long enterTimeCount;
+    private NetConnectionReceiver mReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,6 +187,11 @@ public class MeetingActivity extends Activity implements EventCenterNotifier.ICa
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_meeting);
         ButterKnife.bind(this);
+
+        mReceiver = new NetConnectionReceiver();
+        //注册网络监听广播
+        ReceiverUtil.registerReceiver(mReceiver,this);
+        BaseApplication.getInstance().addNetObserver(this);
 //
         leftButton.setOnClickListener(this);
         cbSwitchCamera.setOnClickListener(this);
@@ -196,6 +211,11 @@ public class MeetingActivity extends Activity implements EventCenterNotifier.ICa
 
         uiHandlerMain.sendEmptyMessageDelayed(DIAPLAY_DELAY, 200);
         showOption();
+        sdf = new SimpleDateFormat("HH:mm:ss");
+
+        startTimeMillis = System.currentTimeMillis();
+        tvMeetInfo.setText("00:00:00");
+        uiHandlerMain.post(this);
     }
 
     private void initWidget() {
@@ -219,6 +239,21 @@ public class MeetingActivity extends Activity implements EventCenterNotifier.ICa
 
         mSurfaceLocalInView.setOnClickListener(this);
         mSurfaceRemoteView.setOnClickListener(this);
+    }
+
+    @Override
+    public void run() {
+        long currentTimeMillis = System.currentTimeMillis();
+        enterTimeCount = currentTimeMillis - startTimeMillis - 8* 60 * 60 *1000;
+        Date date = new Date(enterTimeCount);
+        String formatTime = sdf.format(date);
+        tvMeetInfo.setText(formatTime);
+        uiHandlerMain.postDelayed(this,1000);
+    }
+
+    @Override
+    public void updateNetStatus(int type) {
+        ReceiverUtil.showToast(type,this);
     }
 
     class LocalCallBack implements SurfaceHolder.Callback {
@@ -322,6 +357,7 @@ public class MeetingActivity extends Activity implements EventCenterNotifier.ICa
     }
 
     private void initVideoSurfaceView() {
+        Log.i(TAG, "initVideoSurfaceView");
         if (null == mSurfaceRemoteView) {
             Log.i(TAG, " mSurfaceRemoteView null");
         }
@@ -375,7 +411,6 @@ public class MeetingActivity extends Activity implements EventCenterNotifier.ICa
             public boolean onTouch(View v, MotionEvent event) {
                 int action = event.getAction();
                 //updateCountDownBegTime();
-
                 switch (action) {
                     case MotionEvent.ACTION_DOWN:
                         mTouchLastX = (int) event.getRawX();
@@ -455,7 +490,7 @@ public class MeetingActivity extends Activity implements EventCenterNotifier.ICa
             isCameraOpen = false;
             cbSwitchCamera.setVisibility(View.GONE);
         } else {
-            CameraGrabber.openCamera(1280, 720, 15);
+            CameraGrabber.openCamera(1280, 720, 20);
             CameraGrabber.startCamera(1);
             cbCamera.setChecked(true);
             isCameraOpen = true;
@@ -525,6 +560,8 @@ public class MeetingActivity extends Activity implements EventCenterNotifier.ICa
         super.onDestroy();
         leaveMeetingDialog.dismiss();
         EventCenterNotifier.removeListener(EventCenterNotifier.ICallStatusListener.class, this);
+        BaseApplication.getInstance().removeNetObserver(this);
+        ReceiverUtil.unregisterReceiver(mReceiver,this);
     }
 
     private void showOption() {
